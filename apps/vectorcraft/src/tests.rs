@@ -146,7 +146,7 @@ fn the_system_title_bar_preference_keeps_the_window_decorations() {
     let desktop = Frame::Desktop;
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        assert!(super::custom_titlebar_from(&app, false), "GNOME/Wayland: VectorCraft draws its own");
+        assert!(super::custom_titlebar_from(&app, false), "GNOME/Wayland: ClawVector draws its own");
         assert!(!super::custom_titlebar_from(&app, true), "System Title Bar preference forces native");
         assert!(!super::custom_titlebar_from(&desktop, false), "KDE/X11/…: keep the compositor's frame");
         assert!(!super::custom_titlebar_from(&desktop, true));
@@ -191,7 +191,7 @@ fn the_macos_bundle_opens_every_readable_format() {
     assert!(!plist.contains("<key>NSDocumentClass</key>"), "not an NSDocument app: AppKit would refuse the files");
     let types = plist.matches("<key>CFBundleTypeName</key>").count();
     assert!(types > 1 && plist.matches("<key>LSHandlerRank</key>").count() == types, "every document type has a rank");
-    assert_eq!(plist.matches("<string>Owner</string>").count(), 2, "only VectorCraft documents and templates are owned");
+    assert_eq!(plist.matches("<string>Owner</string>").count(), 2, "only ClawVector documents and templates are owned");
 }
 
 /// The MIME types a Linux desktop gives each extension in `OPEN_EXTS` but `UNASSOCIATED_EXTS`

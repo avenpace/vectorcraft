@@ -90,17 +90,17 @@ pub fn is_native_name(name: &str) -> bool {
 
 #[derive(Debug, thiserror::Error)]
 pub enum FormatError {
-    #[error("not a VectorCraft file: {0}")]
+    #[error("not a ClawVector file: {0}")]
     NotVectorcraft(String),
-    #[error("file version {0} is newer than this VectorCraft supports ({VERSION})")]
+    #[error("file version {0} is newer than this ClawVector supports ({VERSION})")]
     TooNew(u32),
     #[error("invalid image data for `{0}`")]
     BadImage(String),
-    #[error("can't save version {0}: VectorCraft writes versions {MIN_VERSION} to {VERSION}")]
+    #[error("can't save version {0}: ClawVector writes versions {MIN_VERSION} to {VERSION}")]
     BadVersion(u32),
     #[error("version {0} files can't be compressed: only version {COMPRESSED_SINCE} and later open compressed files")]
     CompressedTooOld(u32),
-    #[error("the compressed file unpacks to more than VectorCraft reads ({} MB of document, {} MB per image)", MAX_JSON >> 20, MAX_BLOB >> 20)]
+    #[error("the compressed file unpacks to more than ClawVector reads ({} MB of document, {} MB per image)", MAX_JSON >> 20, MAX_BLOB >> 20)]
     TooBig,
     #[error("the document is too large to save compressed ({0}): save it with Use Compression off")]
     TooBigToCompress(String),
@@ -326,7 +326,7 @@ pub fn save_to(doc: &Document, o: &SaveOptions, w: impl Write) -> Result<(), For
     // Older apps only know the name from before the rename.
     env.field(&mut out, "format", &if o.version < 3 { LEGACY_EXTENSION } else { EXTENSION })?;
     env.field(&mut out, "version", &o.version)?;
-    env.field(&mut out, "generator", &format!("VectorCraft {}", env!("CARGO_PKG_VERSION")))?;
+    env.field(&mut out, "generator", &format!("ClawVector {}", env!("CARGO_PKG_VERSION")))?;
     if let Some(png) = &o.preview {
         env.field(&mut out, "preview", &Image::inline("image/png", png))?;
     }
@@ -728,7 +728,7 @@ mod tests {
         assert!(matches!(e, FormatError::NotVectorcraft(_)), "{e}");
         assert!(e.to_string().contains(&craft_vectorcraft_format::Error::TooBig.to_string()), "{e}");
         let e = FormatError::from(craft_vectorcraft_format::Error::Format("x".into()));
-        assert_eq!(e.to_string(), "not a VectorCraft file: format is `x`");
+        assert_eq!(e.to_string(), "not a ClawVector file: format is `x`");
         assert!(matches!(FormatError::from(craft_vectorcraft_format::Error::TooNew(9)), FormatError::TooNew(9)));
     }
 
@@ -785,7 +785,7 @@ mod tests {
                     let mut file = craft_vectorcraft_format::File::new(Written(&b));
                     file.format = if version < 3 { LEGACY_EXTENSION } else { EXTENSION }.into();
                     file.version = version;
-                    file.generator = Some(format!("VectorCraft {}", env!("CARGO_PKG_VERSION")));
+                    file.generator = Some(format!("ClawVector {}", env!("CARGO_PKG_VERSION")));
                     file.preview = o.preview.as_deref().map(|p| Image::inline("image/png", p));
                     // The images come first in the data after the JSON, then the profiles and the PDF.
                     let mut tail = file.tail();
@@ -822,19 +822,19 @@ mod tests {
         let message = |json: &str| load(json.as_bytes()).err().map(|e| e.to_string());
         assert_eq!(
             message(r#""x""#).as_deref(),
-            Some(r#"not a VectorCraft file: invalid type: string "x", expected struct File at line 1 column 3"#)
+            Some(r#"not a ClawVector file: invalid type: string "x", expected struct File at line 1 column 3"#)
         );
         assert!(
-            message(r#"{"format":"vectorcraft","version":4}"#).is_some_and(|m| m.starts_with("not a VectorCraft file: missing field `document`"))
+            message(r#"{"format":"vectorcraft","version":4}"#).is_some_and(|m| m.starts_with("not a ClawVector file: missing field `document`"))
         );
         let v: serde_json::Value = serde_json::from_slice(&save(&Document::new(10.0, 10.0), false)).unwrap();
         let doc = v["document"].to_string();
         let file = |format: &str, version: u32| format!(r#"{{"format":"{format}","version":{version},"document":{doc}}}"#);
-        assert_eq!(message(&file("svg", 4)).as_deref(), Some("not a VectorCraft file: format is `svg`"));
-        assert_eq!(message(&file("vectorcraft", 9)).as_deref(), Some("file version 9 is newer than this VectorCraft supports (4)"));
+        assert_eq!(message(&file("svg", 4)).as_deref(), Some("not a ClawVector file: format is `svg`"));
+        assert_eq!(message(&file("vectorcraft", 9)).as_deref(), Some("file version 9 is newer than this ClawVector supports (4)"));
         // A document that does not read is reported first, as before.
         assert!(
-            message(r#"{"format":"vectorcraft","version":9,"document":7}"#).is_some_and(|m| m.starts_with("not a VectorCraft file: invalid type"))
+            message(r#"{"format":"vectorcraft","version":9,"document":7}"#).is_some_and(|m| m.starts_with("not a ClawVector file: invalid type"))
         );
         for json in [format!(r#"["vectorcraft",3,{doc},{{}},{{}}]"#), format!(r#"["vectorcraft",3,{doc}]"#)] {
             assert_eq!(load(json.as_bytes()).map(|d| d.artboards.len()).ok(), Some(1), "{json}");
@@ -989,22 +989,22 @@ mod tests {
             let d = load(&serde_json::to_vec(&v).unwrap()).unwrap();
             (d.version, angle(&d))
         };
-        for g in [Some("VectorCraft 0.20.0"), Some("VectorCraft 0.9.12"), Some("DrawCraft 0.1.0"), Some("VectorCraft"), None] {
+        for g in [Some("ClawVector 0.20.0"), Some("ClawVector 0.9.12"), Some("DrawCraft 0.1.0"), Some("ClawVector"), None] {
             assert_eq!(opened(g), (now, Some(-30.0)), "{g:?}");
         }
-        for g in ["VectorCraft 0.21.0", "VectorCraft 0.21.3", "VectorCraft 1.0.0"] {
+        for g in ["ClawVector 0.21.0", "ClawVector 0.21.3", "ClawVector 1.0.0"] {
             assert_eq!(opened(Some(g)), (now, Some(30.0)), "{g}");
         }
         // A file may repeat `generator`: the first one names the app.
         let mut v: serde_json::Value = serde_json::from_slice(&current).unwrap();
         v["document"]["version"] = 1.into();
-        v["generator"] = "VectorCraft 0.21.0".into();
+        v["generator"] = "ClawVector 0.21.0".into();
         let text = serde_json::to_string(&v).unwrap();
         let first = r#""generator":"VectorCraft 0.21.0""#;
         let twice = text.replacen(first, &format!(r#"{first},"generator":"DrawCraft 0.1.0""#), 1);
         assert_ne!(twice, text);
         assert_eq!(angle(&load(twice.as_bytes()).unwrap()), Some(30.0));
-        v["generator"] = "VectorCraft 0.20.0".into();
+        v["generator"] = "ClawVector 0.20.0".into();
         let old = load(&serde_json::to_vec(&v).unwrap()).unwrap();
         let again = load(&save(&old, false)).unwrap();
         assert_eq!((again.version, angle(&again)), (now, Some(-30.0)), "saved again, it is the current version");

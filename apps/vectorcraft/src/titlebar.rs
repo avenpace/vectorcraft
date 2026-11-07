@@ -105,7 +105,7 @@ pub(crate) fn custom_titlebar(saved: Option<&vectorcraft_ui_egui::UiState>) -> b
 pub(crate) fn native_options(custom_titlebar: bool) -> eframe::NativeOptions {
     eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("VectorCraft")
+            .with_title("ClawVector")
             .with_inner_size(window::DEFAULT_SIZE)
             .with_min_inner_size(window::MIN_SIZE)
             .with_drag_and_drop(true)

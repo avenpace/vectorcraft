@@ -433,7 +433,7 @@ fn native_version(ui: &mut egui::Ui, d: &mut Dialog, o: &FormatOption) {
     ui.label(egui::RichText::new(tl!("Version:")).color(t.text_dim)).on_hover_text(o.description);
     let names: Vec<String> = NATIVE_VERSIONS
         .iter()
-        .map(|(n, release)| crate::i18n::fmt(tl!("VectorCraft {release} and later (version {n})"), &[("release", release), ("n", &n.to_string())]))
+        .map(|(n, release)| crate::i18n::fmt(tl!("ClawVector {release} and later (version {n})"), &[("release", release), ("n", &n.to_string())]))
         .collect();
     let names: Vec<&str> = names.iter().map(String::as_str).collect();
     let at = NATIVE_VERSIONS.iter().position(|(n, _)| *n == native_version_of(d)).unwrap_or(0);

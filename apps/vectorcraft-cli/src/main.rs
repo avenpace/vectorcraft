@@ -364,7 +364,7 @@ fn convert(args: &[String]) -> Result<(), String> {
         let skipped = vectorcraft_engine::cmd::fileio::pdf::EDITING_NEEDS_EVERY_ARTBOARD;
         let embedded = !obj.get("warnings").and_then(Value::as_array).is_some_and(|w| w.iter().any(|w| w.as_str() == Some(skipped)));
         if embedded {
-            let note = "The PDF embeds the native VectorCraft document as an attachment (preserveEditing).";
+            let note = "The PDF embeds the native ClawVector document as an attachment (preserveEditing).";
             if let Some(Value::Array(w)) = obj.get_mut("warnings") {
                 if !w.iter().any(|w| w.as_str() == Some(note)) {
                     w.push(json!(note));

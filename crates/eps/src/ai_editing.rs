@@ -156,7 +156,7 @@ const GRID_GRAY: f64 = 200.0 / 255.0;
 /// `%%Creator`: the creator line VectorCraft writes in the header of the editing data. It names
 /// VectorCraft and the format's app, and holds no version number; the version is written on its
 /// own in `%%AI8_CreatorVersion` ([`CREATOR_VERSION`]).
-const CREATOR_TEXT: &str = "VectorCraft, editing data for Illustrator"; // brand-ok: the creator line VectorCraft writes
+const CREATOR_TEXT: &str = "ClawVector, editing data for Illustrator"; // brand-ok: the creator line VectorCraft writes
 
 /// The first line of a PostScript file (the DSC version comment).
 const PS_HEADER: &str = "%!PS-Adobe-3.0"; // brand-ok: the PostScript header comment

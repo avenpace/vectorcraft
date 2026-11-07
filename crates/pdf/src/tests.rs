@@ -113,7 +113,7 @@ fn metadata_creator_and_title() {
     let mut d = doc(100.0, 100.0);
     d.title = "Poster".into();
     let s = uncompressed(&d);
-    assert!(s.contains("VectorCraft"));
+    assert!(s.contains("ClawVector"));
     assert!(s.contains("Poster"));
 }
 

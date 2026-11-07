@@ -184,7 +184,7 @@ mod tests {
     use super::*;
 
     fn filters() -> Vec<Filter> {
-        FilePick::filters([("VectorCraft", &["vectorcraft"][..]), ("SVG", &["svg"]), ("PDF", &["pdf"])])
+        FilePick::filters([("ClawVector", &["vectorcraft"][..]), ("SVG", &["svg"]), ("PDF", &["pdf"])])
     }
 
     /// Save, Save As and Save a Copy list every save format with the default first; a panel with one

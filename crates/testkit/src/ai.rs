@@ -306,7 +306,7 @@ pub fn page_pdf() -> &'static str {
 /// `data` after it, not compressed.
 pub fn eps(data: &[u8], page: &str) -> Vec<u8> {
     let mut out = format!(
-        "{PS_HEADER} EPSF-3.0\n%%Creator: VectorCraft tests\n%%BoundingBox: 0 0 200 100\n%%HiResBoundingBox: 0 0 200 100\n%%EndComments\n{page}showpage\n%%EOF\n%AI9_PrivateDataBegin\n"
+        "{PS_HEADER} EPSF-3.0\n%%Creator: ClawVector tests\n%%BoundingBox: 0 0 200 100\n%%HiResBoundingBox: 0 0 200 100\n%%EndComments\n{page}showpage\n%%EOF\n%AI9_PrivateDataBegin\n"
     )
     .into_bytes();
     out.extend_from_slice(data);

@@ -118,7 +118,7 @@ pub(crate) fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     #[cfg(target_arch = "wasm32")]
     if app.updates_rt.manual_window_open {
         let mut open = true;
-        egui::Window::new(tl!("VectorCraft Updates"))
+        egui::Window::new(tl!("ClawVector Updates"))
             .open(&mut open)
             .collapsible(false)
             .resizable(false)
@@ -166,8 +166,8 @@ mod tests {
         let release = craft_update::Release {
             tag: "v99.0.0".into(),
             version: craft_update::parse_version("99.0.0"),
-            name: "VectorCraft 99.0.0".into(),
-            html_url: "https://github.com/storytold/vectorcraft/releases/tag/v99.0.0".into(),
+            name: "ClawVector 99.0.0".into(),
+            html_url: "https://github.com/avenpace/vectorcraft/releases/tag/v99.0.0".into(),
             ..Default::default()
         };
         app.updates_rt.updater.offer(release);

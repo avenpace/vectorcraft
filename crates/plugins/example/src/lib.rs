@@ -12,7 +12,7 @@ const MANIFEST: &str = r#"{
   "name": "Desaturate",
   "version": "1.0.0",
   "kind": "filter",
-  "author": "VectorCraft contributors",
+  "author": "ClawVector contributors",
   "description": "Moves the colours of the selected paths towards grey; an example of the plug-in ABI.",
   "params": {
     "amount": {"type": "number", "min": 0, "max": 100, "default": 100}

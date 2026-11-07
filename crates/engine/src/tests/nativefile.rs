@@ -202,7 +202,7 @@ fn a_version_1_documents_twist_turns_as_it_was_saved() {
     d.insert(Some(l), 0, Node::path(id, right.clone(), a)).unwrap();
     let mut j = json_of(&vectorcraft_format::save(&d, false));
     j["document"]["version"] = json!(1);
-    j["generator"] = json!("VectorCraft 0.20.0");
+    j["generator"] = json!("ClawVector 0.20.0");
     let mut s = Session::new();
     open(&mut s, "old.vectorcraft", &serde_json::to_vec(&j).unwrap());
     let doc = &s.doc().unwrap().doc;

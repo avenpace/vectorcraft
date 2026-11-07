@@ -27,7 +27,7 @@ const CLOCKWISE_RELEASE: (u64, u64) = (0, 21);
 /// clockwise for a positive angle? It did from 0.21.0. Any other value, or none, is an earlier
 /// app (DrawCraft included).
 pub fn written_clockwise(generator: Option<&str>) -> bool {
-    let Some(version) = generator.and_then(|g| g.strip_prefix("VectorCraft ")) else { return false };
+    let Some(version) = generator.and_then(|g| g.strip_prefix("ClawVector ")) else { return false };
     let mut parts = version.split('.').map(|p| p.parse::<u64>().ok());
     match (parts.next().flatten(), parts.next().flatten()) {
         (Some(major), Some(minor)) => (major, minor) >= CLOCKWISE_RELEASE,
