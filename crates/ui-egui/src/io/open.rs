@@ -155,9 +155,8 @@ pub fn install_plugin(app: &mut VectorcraftApp, p: &Value) -> Result<Value, Stri
     if given("path") || given("dataBase64") {
         return install_module(app, p.clone());
     }
-    if let Some(f) = app.services.open_async.as_mut() {
-        f(); // the browser picker (never the host's storage browser): the module arrives as bytes
-        return Ok(Value::Null);
+    if app.services.open_async.is_some() {
+        return browser_open(app);
     }
     let path =
         pick_open(app, &FilePick { filters: vec![FilePick::filter("Plug-ins", vectorcraft_engine::cmd::plugin::EXTS)], ..Default::default() })?;
@@ -197,6 +196,15 @@ pub fn install_module(app: &mut VectorcraftApp, module: Value) -> Result<Value, 
 /// document's (#4122).
 fn open_dialog_folder(app: &VectorcraftApp) -> Option<String> {
     app.ui.recent_files.iter().find_map(|p| fileio::dialog_folder(p)).or_else(|| suggested(app, "").1)
+}
+
+/// The browser's file picker, never the host's storage browser: for files that are not documents
+/// to open (templates, scripts, shortcut sets, plug-ins); they arrive as bytes ([`open_bytes`]).
+pub(crate) fn browser_open(app: &mut VectorcraftApp) -> Result<Value, String> {
+    if let Some(f) = app.services.open_async.as_mut() {
+        f();
+    }
+    Ok(Value::Null)
 }
 
 /// File → Open…
@@ -336,7 +344,7 @@ pub(crate) fn open_file(app: &mut VectorcraftApp, path: &str, background: bool) 
 pub fn new_from_template(app: &mut VectorcraftApp, path: Option<String>) -> Result<Value, String> {
     let path = match path {
         Some(p) => p,
-        None if app.services.open_async.is_some() => return open_dialog(app).map(|_| Value::Null),
+        None if app.services.open_async.is_some() => return browser_open(app),
         None => {
             let filters = FilePick::filters(std::iter::once(("Templates", TEMPLATE_EXTS)).chain(fileio::open_filters()));
             pick_open(app, &FilePick { folder: fileio::templates_dialog_folder(&app.session.prefs), filters, ..Default::default() })?

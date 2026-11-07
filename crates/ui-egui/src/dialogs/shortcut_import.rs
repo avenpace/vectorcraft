@@ -474,7 +474,7 @@ pub fn command(app: &mut VectorcraftApp, p: &Value) -> Result<Value, String> {
     }
     let path = match s("path") {
         Some(path) => path,
-        None if app.services.open_async.is_some() => return crate::io::open_dialog(app).map(|_| Value::Null),
+        None if app.services.open_async.is_some() => return crate::io::browser_open(app),
         None => {
             let pick =
                 FilePick { filters: vec![FilePick::filter("Shortcut sets", vectorcraft_engine::cmd::shortcutset::EXTS)], ..Default::default() };

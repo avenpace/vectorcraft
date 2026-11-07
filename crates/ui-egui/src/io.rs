@@ -26,6 +26,7 @@ pub use open::{
     MAX_RECENT_FILES, OpensAs, ask_revert, install_module, install_plugin, new_from_template, note_recent, open_bytes, open_dialog, open_document,
     open_path, open_reporting, opens_as, place_bytes, recent_files, report_open_error,
 };
+pub(crate) use open::browser_open;
 #[cfg(test)]
 pub(crate) use open::{open_file, opened_with_notes};
 pub use save::{ask_format_options, ask_pdf_options, remember_active_artboard, remember_view, save, save_pdf};
