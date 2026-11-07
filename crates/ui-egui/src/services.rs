@@ -95,6 +95,8 @@ pub struct Services {
     pub download: Option<DownloadFn>,
     /// Web: start an async open (bytes arrive via `inbox`).
     pub open_async: Option<Box<dyn FnMut()>>,
+    /// Clawku: hand File › Open to the host page (its storage browser); true when it took it.
+    pub host_open: Option<Box<dyn FnMut() -> bool>>,
     /// Read the system clipboard's text (desktop). Without it, pasted text only arrives with
     /// egui's Paste event (web, and keyboard paste everywhere).
     pub clipboard_read: Option<Box<dyn FnMut() -> Option<String>>>,

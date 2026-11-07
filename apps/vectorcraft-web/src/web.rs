@@ -452,6 +452,7 @@ fn services(inbox: Inbox, place_inbox: PlaceInbox, ctx: egui::Context, locks: Op
             });
         })),
         place_inbox: Some(place_inbox),
+        host_open: Some(Box::new(|| crate::clawku_pick::host_pick("vectorcraft", "document"))),
         open_async: Some(Box::new(move || {
             let inbox = open_inbox.clone();
             let ctx = ctx.clone();

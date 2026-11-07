@@ -155,8 +155,9 @@ pub fn install_plugin(app: &mut VectorcraftApp, p: &Value) -> Result<Value, Stri
     if given("path") || given("dataBase64") {
         return install_module(app, p.clone());
     }
-    if app.services.open_async.is_some() {
-        return open_dialog(app).map(|_| Value::Null);
+    if let Some(f) = app.services.open_async.as_mut() {
+        f(); // the browser picker (never the host's storage browser): the module arrives as bytes
+        return Ok(Value::Null);
     }
     let path =
         pick_open(app, &FilePick { filters: vec![FilePick::filter("Plug-ins", vectorcraft_engine::cmd::plugin::EXTS)], ..Default::default() })?;
@@ -200,6 +201,9 @@ fn open_dialog_folder(app: &VectorcraftApp) -> Option<String> {
 
 /// File → Open…
 pub fn open_dialog(app: &mut VectorcraftApp) -> Result<(), String> {
+    if app.services.host_open.as_mut().is_some_and(|f| f()) {
+        return Ok(()); // the host page shows its own file browser and sends the file
+    }
     if let Some(f) = app.services.open_async.as_mut() {
         f();
         return Ok(());
