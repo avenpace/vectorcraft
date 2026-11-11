@@ -97,6 +97,11 @@ struct Moving {
 
 /// Run the app on `canvas`: the `moving` one when starting again after losing the graphics, else
 /// a new one.
+/// The device's main pointer is a finger (`(pointer: coarse)`): a phone or a tablet.
+fn coarse_pointer() -> bool {
+    web_sys::window().and_then(|w| w.match_media("(pointer: coarse)").ok().flatten()).is_some_and(|m| m.matches())
+}
+
 async fn run(host: Host, canvas: web_sys::HtmlCanvasElement, moving: Option<Moving>) {
     track_drag(&canvas, &host.drag);
     let kept = moving.as_ref().map(|m| m.kept);
@@ -137,7 +142,13 @@ async fn run(host: Host, canvas: web_sys::HtmlCanvasElement, moving: Option<Movi
                         if let Err(e) = crate::api::install() {
                             log::error!("vectorcraft-web: couldn't install window.vectorcraft: {}", js_err(e));
                         }
-                        VectorcraftApp::new(Session::new(), services).with_control(control_rx)
+                        let mut app = VectorcraftApp::new(Session::new(), services).with_control(control_rx);
+                        // A phone or tablet: its first press is already a finger's (a drag off
+                        // the canvas scrolls; `touch::FingerFilter`).
+                        if coarse_pointer() {
+                            app.expect_touch();
+                        }
+                        app
                     }
                 };
                 Ok(Box::new(WebShell { app: Some(app), host, canvas: page, loss }))

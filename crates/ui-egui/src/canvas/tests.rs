@@ -799,7 +799,8 @@ fn shift_clicking_canvas_artboard_label_toggles_multi_selection() {
 }
 
 /// Enable Touch Gestures (#585): a two-finger tap undoes and a three-finger one redoes, and the
-/// first finger's press (the pointer egui makes of it) draws nothing. Off, a tap does nothing.
+/// first finger's press (the pointer egui makes of it) draws nothing. Off, a tap does nothing, and
+/// the second finger still drops what the first began.
 #[test]
 fn two_finger_tap_undoes_and_three_finger_tap_redoes() {
     let mut app = VectorcraftApp::new(Session::new(), Default::default());
@@ -829,7 +830,7 @@ fn two_finger_tap_undoes_and_three_finger_tap_redoes() {
     assert_eq!(count(&app), 1, "redone");
     app.session.prefs.touch_gestures = false;
     tap(&mut app, 2);
-    assert_eq!(count(&app), 2, "off: the first finger draws as the pointer, and nothing is undone");
+    assert_eq!(count(&app), 1, "off: the second finger still drops the first one's rectangle, and nothing is undone");
 }
 
 /// The Artboard tool's label holds the artboard's name (never translated); the tools' own

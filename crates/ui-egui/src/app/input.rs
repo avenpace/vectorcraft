@@ -178,6 +178,14 @@ impl VectorcraftApp {
     /// injected until the batch was actually applied, so a burst of hidden ticks cannot queue
     /// several steps of a drag or replay them together later.
     pub fn raw_input_hook(&mut self, ctx: &egui::Context, raw: &mut egui::RawInput) {
+        // Fingers off the canvas scroll panels, lists and text fields (`touch::FingerFilter`). The
+        // control channel's input, added below, is a mouse's and passes as it is.
+        if raw.viewport_id == egui::ViewportId::ROOT {
+            let canvas = self.canvas_rect;
+            let on_canvas =
+                |p: egui::Pos2| canvas.is_some_and(|r| r.contains(p)) && ctx.layer_id_at(p).is_none_or(|l| l.order == egui::Order::Background);
+            self.fingers.filter(raw, on_canvas, || crate::touch::under_finger(ctx));
+        }
         self.fill_raw_input(ctx, raw);
         crate::font_menu::sync_wheel_target(self, ctx, raw.viewport_id);
         crate::font_menu::take_raw_wheel(ctx, raw);

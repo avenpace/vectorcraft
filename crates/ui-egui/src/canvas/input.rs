@@ -215,12 +215,19 @@ fn wheel_view(
         ui.ctx().request_repaint();
     }
     let hover = pointer.hover_pos().filter(|p| rect.contains(*p));
+    // Two fingers zoom about the point between them (the pointer is the first finger), when it is
+    // on the canvas.
+    let pinch = ui.input(|i| i.multi_touch().map(|t| t.center_pos));
+    let over = match pinch {
+        Some(c) => rect.contains(c) && (resp.hovered() || resp.dragged()),
+        None => resp.hovered(),
+    };
     // Zoom around the pointer, and scroll ([`wheel`]): fingers pinching on a touch screen may also
     // slide. Then turn the view about the pointer for a trackpad rotation ([`trackpad_turn`]). The
     // tool's events below take their document points from the view this moves to.
-    if resp.hovered() {
+    if over {
         if (factor - 1.0).abs() > 1e-6
-            && let (Some(p), Some(vm)) = (hover, app.view_mut())
+            && let (Some(p), Some(vm)) = (pinch.or(hover), app.view_mut())
         {
             zoom_about(vm, rect, p, vm.zoom * factor);
         }

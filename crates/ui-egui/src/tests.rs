@@ -53,6 +53,7 @@ mod sysclip_guides;
 mod sysclip_probe;
 mod tab_overflow;
 mod tab_reorder;
+mod touch;
 mod taskbar;
 mod toolescape;
 mod trace_runs;

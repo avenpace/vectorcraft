@@ -411,13 +411,11 @@ pub(super) fn wheel(i: &egui::InputState, wheel_zooms: bool, animate: bool, line
     (zoom * step.exp(), scroll)
 }
 
-/// Enable Touch Gestures: this frame's finger contacts on the canvas ([`crate::touch`]). A second
-/// finger drops the press the first one began (its tool interaction rolled back; the rest of the
-/// gesture presses nothing), and a tap of two fingers undoes, one of three redoes.
+/// This frame's finger contacts on the canvas ([`crate::touch`]). A second finger drops the press
+/// the first one began (its tool interaction rolled back; the rest of the gesture presses nothing,
+/// and the fingers pan and pinch-zoom the view, [`wheel`]), whatever the tool. With Enable Touch
+/// Gestures a tap of two fingers undoes, one of three redoes.
 pub(super) fn touch_gestures(app: &mut VectorcraftApp, ui: &Ui, rect: egui::Rect, view: vectorcraft_engine::ViewInfo) {
-    if !app.session.prefs.touch_gestures {
-        return;
-    }
     let (touches, now): (Vec<_>, f64) = ui.input(|i| {
         let t = i.events.iter().filter_map(|e| match e {
             egui::Event::Touch { id, phase, pos, .. } => Some((*id, *phase, *pos)),
@@ -452,6 +450,7 @@ pub(super) fn touch_gestures(app: &mut VectorcraftApp, ui: &Ui, rect: egui::Rect
     ui.data_mut(|d| d.insert_temp(key, taps));
     // In Presentation Mode a tap of two or three fingers undoes or redoes nothing.
     if let Some(cmd) = tap
+        && app.session.prefs.touch_gestures
         && app.ui.screen_mode < 3
     {
         crate::menus::invoke(app, cmd, serde_json::json!({}));

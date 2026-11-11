@@ -120,6 +120,7 @@ impl VectorcraftApp {
             updates_rt: Default::default(),
             frame_rate: Default::default(),
             canvas_rect: None,
+            fingers: Default::default(),
             hover_doc: None,
             custom_titlebar: false,
             last_window_title: String::new(),
@@ -445,6 +446,24 @@ impl VectorcraftApp {
         }
     }
 
+    /// The device's main pointer is a finger (a phone or tablet: `(pointer: coarse)` on the web):
+    /// its first press is already read as a finger's ([`crate::touch::FingerFilter::expect_touch`]).
+    pub fn expect_touch(&mut self) {
+        self.fingers.expect_touch();
+    }
+
+    /// A finger dragging off the canvas scrolls the scroll area under it, 1:1
+    /// ([`crate::touch::FingerFilter`]), as a wheel would.
+    fn finger_scroll(&mut self, ctx: &egui::Context) {
+        let d = self.fingers.take_scroll();
+        if d != egui::Vec2::ZERO {
+            ctx.input_mut(|i| i.smooth_scroll_delta += d);
+        }
+        if let Some(after) = self.fingers.repaint_after() {
+            ctx.request_repaint_after(after);
+        }
+    }
+
     /// The canvas panel's body: the document tabs, the canvas (a pane for each document while
     /// Window › Arrange › Tile is on) and the isolation bar over it. While the current document is
     /// in a floating window, the tab strip's document draws as a pane.
@@ -491,6 +510,7 @@ impl VectorcraftApp {
             vectorcraft_engine::guard::catch_panic(|| {
                 self.ui_setup(&ctx);
                 self.handle_input_once(&ctx);
+                self.finger_scroll(&ctx);
                 self.ui_frame(ui);
             })
         }) {

@@ -183,6 +183,9 @@ pub struct VectorcraftApp {
     frame_rate: frame_rate::FrameRate,
     /// Canvas rect of the last frame (screen points), for control-channel coordinate mapping.
     pub canvas_rect: Option<egui::Rect>,
+    /// Fingers off the canvas on a touch screen: a drag scrolls panels, lists and text fields
+    /// ([`touch::FingerFilter`]).
+    pub(crate) fingers: touch::FingerFilter,
     /// Hover position in document coordinates.
     pub hover_doc: Option<vectorcraft_geom::Point>,
     /// System clipboard: SVG to publish next frame, the last SVG we published (so pasting it back
