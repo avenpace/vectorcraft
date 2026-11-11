@@ -134,6 +134,17 @@ pub fn share(app: &mut VectorcraftApp) -> Result<serde_json::Value, String> {
     }
 }
 
+/// The path a document opened from bytes named `name` keeps as its own file while hosted: the
+/// name Clawku sent it under, so File › Save (and its shortcut) writes it back there, in its own
+/// format, with no Save As dialog, as any editor saves the file that was opened. The engine keeps
+/// it only for a file Save can write back ([`vectorcraft_engine::cmd::fileio::SAVE_FORMATS`]:
+/// SVG and SVGZ, a whole PDF, a `.ai` that carries the native document, EPS and the native
+/// format); any other file opens without one and Save asks as before (Save As, a native file).
+/// Not hosted, none: the desktop and the plain web keep their behaviour.
+pub fn own_path(app: &VectorcraftApp, name: &str) -> Option<String> {
+    (hosted(app) && !name.is_empty()).then(|| name.to_string())
+}
+
 /// The name Save a Copy writes while hosted: `name`'s stem with ` (copy)` (once) and its
 /// extension, so Clawku keeps it as a copy next to the document instead of taking it for the
 /// document's new file, which a native file under another name is (Save As).

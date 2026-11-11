@@ -51,6 +51,8 @@ pub fn open_bytes(app: &mut VectorcraftApp, name: &str, bytes: &[u8], path: Opti
     {
         return Ok(Value::Null);
     }
+    // Hosted, the file Clawku sent is the document's own: Save writes it back under its name.
+    let path = path.or_else(|| crate::hosted::own_path(app, name));
     open_document(app, name, bytes, path, &Value::Null)
 }
 

@@ -174,3 +174,52 @@ fn hosted_has_no_help_menu_about_or_help_commands() {
     // No "?" mark in the status bar while hosted.
     assert!(!crate::hosted::shows_help_mark(&hosted) && crate::hosted::shows_help_mark(&plain));
 }
+
+/// A web app whose saves are kept as `(name, bytes)`, as Clawku's captured downloads are.
+fn capturing_app(hosted: bool, files: &Rc<RefCell<Vec<(String, Vec<u8>)>>>) -> VectorcraftApp {
+    let f = files.clone();
+    let services = Services {
+        download: Some(Box::new(move |name: &str, bytes: &[u8]| {
+            f.borrow_mut().push((name.to_string(), bytes.to_vec()));
+            Ok(())
+        })),
+        hosted,
+        ..Default::default()
+    };
+    VectorcraftApp::new(Session::new(), services)
+}
+
+const SAMPLE_SVG: &str =
+    r##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="80" viewBox="0 0 100 80"><rect x="10" y="10" width="30" height="20" fill="#f45d5d"/></svg>"##;
+
+#[test]
+fn hosted_save_writes_an_opened_svg_back_as_svg_without_a_dialog() {
+    let files = Rc::new(RefCell::new(Vec::new()));
+    let mut app = capturing_app(true, &files);
+    // Clawku hands the document over as bytes (`vectorcraft.openFile`), as the inbox does.
+    crate::io::open_bytes(&mut app, "sample.svg", SAMPLE_SVG.as_bytes(), None).unwrap();
+    app.run("shape.rectangle", json!({"x": 50, "y": 40, "width": 20, "height": 20})).unwrap();
+    assert!(app.session.doc().unwrap().is_dirty(), "edited");
+    // File › Save and Ctrl+S both run `file.save` through the menus.
+    crate::menus::invoke(&mut app, "file.save", json!({}));
+    assert!(app.ui.dialog.is_none(), "no Save As / options dialog: {:?}", app.ui.dialog.as_ref().map(|d| &d.kind));
+    let written = files.borrow();
+    assert_eq!(written.len(), 1, "one file written");
+    let (name, bytes) = &written[0];
+    assert_eq!(name, "sample.svg", "the document's own path");
+    let text = String::from_utf8_lossy(bytes);
+    assert!(text.contains("<svg"), "SVG content: {text}");
+    let st = app.session.doc().unwrap();
+    assert_eq!(st.path.as_deref(), Some("sample.svg"));
+    assert_eq!(st.format, "svg");
+    assert!(!st.is_dirty(), "marked saved");
+    drop(written);
+
+    // Not hosted, the same file opens with no path of its own and Save asks (Save As, native).
+    let files = Rc::new(RefCell::new(Vec::new()));
+    let mut plain = capturing_app(false, &files);
+    crate::io::open_bytes(&mut plain, "sample.svg", SAMPLE_SVG.as_bytes(), None).unwrap();
+    crate::menus::invoke(&mut plain, "file.save", json!({}));
+    assert!(plain.ui.dialog.is_some(), "the plain web app keeps its Save As dialog");
+    assert!(files.borrow().is_empty());
+}
