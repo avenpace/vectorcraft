@@ -1,5 +1,6 @@
 //! Hosted by Clawku (`Services::hosted`): one document, no Home screen, no New / Close / Recent,
-//! Share goes to the host, Save keeps the document's name and Save a Copy is marked as a copy.
+//! Share goes to the host, Save keeps the document's name, Save a Copy is marked as a copy and
+//! there is no Help at all (menu, About, palette entries).
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -139,4 +140,37 @@ fn web_preferences_leave_out_folders_and_hosted_ones_data_recovery() {
     assert!(has(&desktop, "Plug-ins & Scratch Disks"));
     assert!(!has(&web, "Plug-ins & Scratch Disks"), "only folders there");
     assert!(has(&web, "File Handling") && has(&hosted, "General"));
+}
+
+#[test]
+fn hosted_has_no_help_menu_about_or_help_commands() {
+    let (saved, shares) = (Saved::default(), Rc::new(Cell::new(0)));
+    let plain = web_app(false, &saved, &shares);
+    let mut hosted = web_app(true, &saved, &shares);
+    let paths = |app: &VectorcraftApp| crate::menus::menu_entries(app).into_iter().map(|e| e.path).collect::<Vec<_>>();
+    assert!(paths(&plain).iter().any(|p| p.first().is_some_and(|t| t == "Help")), "the plain web app has Help");
+    assert!(!paths(&hosted).iter().any(|p| p.iter().any(|t| t == "Help")), "no Help menu while hosted");
+    assert!(crate::hosted::hides_menu(&hosted, "Help") && !crate::hosted::hides_menu(&plain, "Help"));
+    let labels = menu_labels(&hosted);
+    for l in ["About ClawVector", "ClawVector Help…", "Join Our Discord", "Check for Updates…", "Search Commands…"] {
+        assert!(!labels.iter().any(|x| x == l), "{l} is left out while hosted");
+    }
+    let (plain_cmds, hosted_cmds) = (menu_commands(&plain), menu_commands(&hosted));
+    assert!(!hosted_cmds.iter().any(|c| c.starts_with("help.")), "no help.* item while hosted: {hosted_cmds:?}");
+    for id in ["help.about", "help.discord", "help.website", "help.appPage", "help.github", "help.checkForUpdates"] {
+        assert!(plain_cmds.iter().any(|c| c == id), "{id} stays in the plain web app");
+        assert!(!crate::menus::enabled(&hosted, id), "{id} is off on its keys too");
+        assert!(crate::hosted::hides_listed(&hosted, id), "{id} is not in the palette");
+        assert!(!crate::hosted::hides_listed(&plain, id), "{id} is in the plain palette");
+    }
+    // About never opens from a hosted app.
+    crate::menus::invoke(&mut hosted, "help.about", json!({}));
+    assert!(!hosted.ui.about, "no About while hosted");
+    // Search Commands still opens the palette (its shortcut, the search icon) but lists no Help.
+    assert!(crate::hosted::hides_listed(&hosted, crate::hosted::PALETTE));
+    assert!(!crate::hosted::hides(&hosted, crate::hosted::PALETTE));
+    crate::menus::invoke(&mut hosted, crate::hosted::PALETTE, json!({}));
+    assert!(hosted.ui.palette_open);
+    // No "?" mark in the status bar while hosted.
+    assert!(!crate::hosted::shows_help_mark(&hosted) && crate::hosted::shows_help_mark(&plain));
 }

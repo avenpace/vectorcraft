@@ -231,17 +231,25 @@ pub fn hint_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
         .frame(egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin::symmetric(10, 0)).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
             ui.horizontal_centered(|ui| {
-                let (r, _) = ui.allocate_exact_size(vec2(16.0, 16.0), Sense::hover());
-                ui.painter().circle_stroke(r.center(), 7.0, Stroke::new(1.2, t.text));
-                ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, "?", theme::semibold(11.0), t.text);
-                ui.add_space(6.0);
+                // No "?" mark while Clawku hosts the app: Clawku gives the help.
+                if crate::hosted::shows_help_mark(app) {
+                    let (r, _) = ui.allocate_exact_size(vec2(16.0, 16.0), Sense::hover());
+                    ui.painter().circle_stroke(r.center(), 7.0, Stroke::new(1.2, t.text));
+                    ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, "?", theme::semibold(11.0), t.text);
+                    ui.add_space(6.0);
+                }
                 let mut job = egui::text::LayoutJob::default();
                 let segments = if let Some(d) = app.ui.dialog.as_ref().filter(|d| crate::dialogs::revolve_gizmo::active(d)) {
                     vec![(crate::dialogs::revolve_gizmo::hint(d).into(), false)]
                 } else {
                     let tool = app.session.tool_id();
                     let hint = if tool == "zoom" && crate::canvas::animated_zoom(&app.session.prefs) { ANIMATED_ZOOM_HINT } else { tool };
-                    hint_segments(hint)
+                    // Hosted there is no Help menu for the no-shortcut fallback to point at.
+                    if crate::hosted::hosted(app) && hint_for(hint).is_none() && menus::shortcut_of(crate::hosted::PALETTE).is_none() {
+                        vec![]
+                    } else {
+                        hint_segments(hint)
+                    }
                 };
                 for (txt, bold) in segments {
                     let font = if bold { theme::semibold(12.5) } else { egui::FontId::proportional(12.5) };

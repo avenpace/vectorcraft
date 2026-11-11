@@ -986,7 +986,9 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                 ui.label(egui::RichText::new(tl!("Shortcut")).color(t.text_dim).size(11.0));
             });
             egui::ScrollArea::vertical().max_height(360.0).auto_shrink([false, false]).show(ui, |ui| {
-                for (i, e) in entries().iter().enumerate().filter(|(_, e)| e.is_tool == tools && listed(km.overrides(), e)) {
+                // Clawku hosting leaves out the Help commands (and the commands it hides) here too.
+                let shown = |e: &Entry| e.is_tool == tools && listed(km.overrides(), e) && !crate::hosted::hides_listed(app, &e.key);
+                for (i, e) in entries().iter().enumerate().filter(|(_, e)| shown(e)) {
                     let sc = match &km {
                         Cow::Borrowed(_) => view.texts.get(i).cloned().flatten(),
                         Cow::Owned(km) => dialog_shortcuts_with(km, &e.key, view.backtick.as_deref()),

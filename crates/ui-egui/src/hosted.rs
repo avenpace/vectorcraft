@@ -3,8 +3,8 @@
 //! Clawku owns the file list, New, Open, Close, Rename, sharing, versions, sign-in and help, and
 //! keeps versions of every file itself. So while hosted the app shows the one document Clawku sent
 //! and leaves out (hides, not dims) every way to make, list, switch or close documents, the Home
-//! screen, Data Recovery, its standalone links and its local-folder settings; Share goes to the
-//! host. Nothing here changes the desktop app or the plain web build.
+//! screen, Data Recovery, its standalone links, its local-folder settings and all of Help (the
+//! Help menu with About, the "?" icons, help commands in the palette); Share goes to the host. Nothing here changes the desktop app or the plain web build.
 //!
 //! [`Services::hosted`]: crate::Services::hosted
 
@@ -33,10 +33,7 @@ pub const HIDDEN_COMMANDS: &[&str] = &[
     "window.arrange.floatInWindow",
     "window.arrange.floatAllInWindows",
     "window.arrange.consolidateAllWindows",
-    // The standalone app's community, source and updates.
-    "help.discord",
-    "help.github",
-    "help.checkForUpdates",
+    // Help is Clawku's: every `help.` command but Search Commands ([`HELP_PREFIX`]).
     // Libraries and shortcut sets saved as loose files, and plug-ins read from a folder.
     "ui.saveSwatchLibrary",
     "ui.saveGraphicStyleLibrary",
@@ -45,6 +42,18 @@ pub const HIDDEN_COMMANDS: &[&str] = &[
     "shortcuts.export",
     "plugin.reload",
 ];
+
+/// Every command under this prefix is left out while hosted: Clawku gives the help, so there is no
+/// Help menu, About, community, website, source or updates link of the app's own.
+pub const HELP_PREFIX: &str = "help.";
+
+/// Search Commands keeps its shortcut and the title bar's search icon while hosted: it searches
+/// the app's commands and is no help page. Only its own entry in the palette and the shortcut
+/// list (both under Help) goes.
+pub const PALETTE: &str = "help.commandPalette";
+
+/// Top-level menus left out while hosted, by their tree title.
+pub const HIDDEN_MENUS: &[&str] = &["Help"];
 
 /// Commands shown only while hosted (they need the host).
 pub const HOSTED_ONLY_COMMANDS: &[&str] = &[SHARE];
@@ -56,7 +65,8 @@ pub const SHARE: &str = "file.share";
 /// of several document windows.
 pub const HIDDEN_SUBMENUS: &[&str] = &["Open Recent Files", "Arrange"];
 
-/// Items not implemented yet left out while hosted, by their tree label: Help points at Clawku.
+/// Items not implemented yet left out while hosted, by their tree label: Help points at Clawku
+/// (the whole Help menu is left out too, [`HIDDEN_MENUS`]).
 pub const HIDDEN_TODOS: &[&str] = &["ClawVector Help…"];
 
 /// Preferences left out while hosted: Data Recovery (Clawku keeps versions), the Home screen and
@@ -77,7 +87,27 @@ pub fn hosted(app: &VectorcraftApp) -> bool {
 /// Whether command `id` is left out now: one of [`HIDDEN_COMMANDS`] (or a recent file slot) while
 /// hosted, or a [`HOSTED_ONLY_COMMANDS`] one while not.
 pub fn hides(app: &VectorcraftApp, id: &str) -> bool {
-    if hosted(app) { HIDDEN_COMMANDS.contains(&id) || id.starts_with("file.openRecent") } else { HOSTED_ONLY_COMMANDS.contains(&id) }
+    if hosted(app) {
+        HIDDEN_COMMANDS.contains(&id) || id.starts_with("file.openRecent") || (id.starts_with(HELP_PREFIX) && id != PALETTE)
+    } else {
+        HOSTED_ONLY_COMMANDS.contains(&id)
+    }
+}
+
+/// Whether the command palette and the Keyboard Shortcuts list leave out `id` now: what [`hides`]
+/// leaves out and, while hosted, every Help command (Search Commands too: it is the palette).
+pub fn hides_listed(app: &VectorcraftApp, id: &str) -> bool {
+    hides(app, id) || (hosted(app) && id.starts_with(HELP_PREFIX))
+}
+
+/// Whether the top-level menu titled `title` (the tree's English title) is left out now.
+pub fn hides_menu(app: &VectorcraftApp, title: &str) -> bool {
+    hosted(app) && HIDDEN_MENUS.contains(&title)
+}
+
+/// Whether the status bar's "?" hint mark shows now: never while hosted (no help icons).
+pub fn shows_help_mark(app: &VectorcraftApp) -> bool {
+    !hosted(app)
 }
 
 /// Whether the submenu labelled `label` (the tree's English label) is left out now.
