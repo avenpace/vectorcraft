@@ -64,11 +64,14 @@ pub fn app_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                 crate::brand::paint_mark(ui, r);
                 ui.add_space(6.0);
             }
-            let on_home = menus::home_showing(app);
-            if widgets::icon_button(ui, "house", tl!("Home"), on_home, 20.0).clicked() {
-                app.run("app.home", json!({})).ok();
+            // No Home screen while Clawku hosts the app.
+            if !crate::hosted::hosted(app) {
+                let on_home = menus::home_showing(app);
+                if widgets::icon_button(ui, "house", tl!("Home"), on_home, 20.0).clicked() {
+                    app.run("app.home", json!({})).ok();
+                }
+                ui.add_space(2.0);
             }
-            ui.add_space(2.0);
             // With the macOS menu bar the menus are at the top of the screen instead.
             let menus_end = if app.services.native_menu.is_some() { ui.cursor().min.x } else { menus::menu_bar(app, ui) };
             // The right-side group fills the space after the menus from the right; when it runs
@@ -88,7 +91,10 @@ pub fn app_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
             let icon = 28.0;
             let search = room >= 64.0 + 8.0 + gap + icon;
             let ws_w = ws_w.min(room - 8.0 - gap - if search { icon } else { 0.0 }).max(64.0);
-            let discord = search && room >= ws_w + 8.0 + gap + icon + 10.0 + gap + crate::community::discord_width(ui, false);
+            // The standalone app's Discord button is left out while Clawku hosts the app, and
+            // Share takes its place (always: it is how a hosted document is shared).
+            let hosted = crate::hosted::hosted(app);
+            let discord = !hosted && search && room >= ws_w + 8.0 + gap + icon + 10.0 + gap + crate::community::discord_width(ui, false);
             let mut rui = ui.new_child(egui::UiBuilder::new().max_rect(right).layout(egui::Layout::right_to_left(egui::Align::Center)));
             let ui = &mut rui;
             // Workspace switcher: shows the current workspace, opens Window → Workspace.
@@ -113,6 +119,14 @@ pub fn app_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
             if discord {
                 ui.add_space(10.0);
                 crate::community::discord_button(app, ui, false);
+            }
+            if hosted && menus::enabled(app, crate::hosted::SHARE) {
+                ui.add_space(4.0);
+                if widgets::icon_button(ui, "share-2", tl!("Share"), false, icon).clicked()
+                    && let Err(e) = app.run(crate::hosted::SHARE, json!({}))
+                {
+                    app.status(e);
+                }
             }
             if app.services.native_menu.is_some() {
                 let title = ui.painter().layout_no_wrap("ClawVector".into(), egui::FontId::proportional(13.5), t.text);

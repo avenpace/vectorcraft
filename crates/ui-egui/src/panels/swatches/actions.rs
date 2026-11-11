@@ -193,7 +193,7 @@ pub fn menu(app: &mut VectorcraftApp, ui: &mut Ui) {
     }
     ui.separator();
     ui.menu_button(tl!("Open Swatch Library"), |ui| library_panel::library_menu::<SwatchLibraries>(app, ui));
-    if menu_item(ui, tl!("Save Swatch Library…"), true, false) {
+    if !crate::hosted::hides(app, "ui.saveSwatchLibrary") && menu_item(ui, tl!("Save Swatch Library…"), true, false) {
         app.run("ui.saveSwatchLibrary", json!({ "names": deletable(&selected) })).ok();
     }
 }

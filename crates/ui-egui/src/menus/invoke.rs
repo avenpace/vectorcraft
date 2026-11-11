@@ -135,7 +135,7 @@ pub(crate) fn graph_dialog(app: &mut VectorcraftApp, id: &str) -> Result<Value, 
 }
 
 pub fn invoke(app: &mut VectorcraftApp, id: &str, p: Value) {
-    if waits_for_ime(app, id) {
+    if waits_for_ime(app, id) || crate::hosted::hides(app, id) {
         return;
     }
     if SUBJECT_COMMANDS.contains(&id)

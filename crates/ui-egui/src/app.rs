@@ -452,7 +452,8 @@ impl VectorcraftApp {
         let t = theme::Tokens::get(ui.ctx());
         ui.painter().rect_filled(ui.max_rect(), 0.0, t.pasteboard);
         self.canvas.windows.strip = None;
-        if self.ui.screen_mode < 3 {
+        // Clawku hosting shows its one document without tabs (Clawku has the file list).
+        if self.ui.screen_mode < 3 && !crate::hosted::hosted(self) {
             chrome::doc_tabs(self, ui);
         }
         self.canvas.windows.area = Some(ui.available_rect_before_wrap());

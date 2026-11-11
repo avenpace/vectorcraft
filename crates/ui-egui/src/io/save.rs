@@ -252,8 +252,18 @@ fn plan(app: &VectorcraftApp, mode: SaveMode, p: &Value) -> Result<SavePlan, Str
 /// path?}` while a dialog is open.
 pub fn save(app: &mut VectorcraftApp, mode: SaveMode, p: &Value, ask_options: bool) -> Result<Value, String> {
     remember_view(app);
+    let hosted_copy;
+    let p = if mode == SaveMode::Copy && crate::hosted::hosted(app) {
+        hosted_copy = hosted_copy_params(p);
+        &hosted_copy
+    } else {
+        p
+    };
     // Writing over the file the document was read from is asked about here, not refused.
-    let first = plan(app, mode, &acknowledged(p))?;
+    let mut first = plan(app, mode, &acknowledged(p))?;
+    if mode == SaveMode::Copy && crate::hosted::hosted(app) {
+        first.name = crate::hosted::copy_name(&first.name);
+    }
     let ask = ask_options && !has_options(p);
     if let Some(path) = first.path.clone() {
         if let Some(r) = ask_before_losing(app, &path, save_command(mode), p) {
@@ -290,6 +300,17 @@ pub fn save(app: &mut VectorcraftApp, mode: SaveMode, p: &Value, ask_options: bo
         return r;
     }
     write_plan(app, chosen)
+}
+
+/// Save a Copy's params while Clawku hosts the app: a `path` given (the Save a Copy dialog's
+/// name) is marked as a copy ([`crate::hosted::copy_name`]), so the copy never takes the
+/// document's own name nor reads as its new file.
+fn hosted_copy_params(p: &Value) -> Value {
+    let mut q = if p.is_object() { p.clone() } else { json!({}) };
+    if let Some(path) = q.get("path").and_then(Value::as_str).map(crate::hosted::copy_name) {
+        q["path"] = json!(path);
+    }
+    q
 }
 
 /// The UI command that runs a save in `mode`.

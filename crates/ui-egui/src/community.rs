@@ -84,13 +84,19 @@ pub fn links_centered(app: &mut VectorcraftApp, ui: &mut Ui) {
 }
 
 fn links_in(app: &mut VectorcraftApp, ui: &mut Ui, centered: bool) {
-    discord_button(app, ui, true);
-    ui.add_space(8.0);
+    // While Clawku hosts the app (About) the standalone app's Discord and GitHub are left out.
+    let hosted = crate::hosted::hosted(app);
+    if !hosted {
+        discord_button(app, ui, true);
+        ui.add_space(8.0);
+    }
     let l = app.session.execute("help.links", &serde_json::json!({})).unwrap_or_default();
     let s = |k: &str| l[k].as_str().unwrap_or("").to_string();
     link(app, ui, "globe", tl!("Clawku website"), "help.website", &s("website"), centered);
     link(app, ui, "external-link", tl!("ClawVector on clawku.id"), "help.appPage", &s("appPage"), centered);
-    link(app, ui, "git-branch", tl!("Source code on GitHub"), "help.github", &s("github"), centered);
+    if !hosted {
+        link(app, ui, "git-branch", tl!("Source code on GitHub"), "help.github", &s("github"), centered);
+    }
 }
 
 #[cfg(test)]

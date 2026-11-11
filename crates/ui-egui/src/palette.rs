@@ -81,7 +81,9 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     let t = Tokens::get(ctx);
     let q = app.ui.palette_query.to_lowercase();
     let entries = entries(ctx, crate::i18n::current());
-    let matches: Vec<&Entry> = entries.iter().filter(|e| q.split_whitespace().all(|w| e.haystack.contains(w))).take(14).collect();
+    // Commands Clawku hosting leaves out are not offered either.
+    let matches: Vec<&Entry> =
+        entries.iter().filter(|e| !crate::hosted::hides(app, &e.id) && q.split_whitespace().all(|w| e.haystack.contains(w))).take(14).collect();
     let mut run: Option<String> = None;
     // The highlighted result (#1757): Up and Down move it (wrapping), the pointer over a result
     // takes it, and a new query starts again from the first.

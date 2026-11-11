@@ -944,7 +944,8 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
             if ui.button(tl!("Import…")).clicked() {
                 d.fields.insert("__import".into(), json!(true));
             }
-            if ui.button(tl!("Export…")).clicked() {
+            // Not while Clawku hosts the app: a shortcut set is no document of Clawku's.
+            if !crate::hosted::hides(app, "shortcuts.export") && ui.button(tl!("Export…")).clicked() {
                 d.fields.insert("__export".into(), json!(true));
             }
             if ui.button(tl!("Reset to Defaults")).clicked() {

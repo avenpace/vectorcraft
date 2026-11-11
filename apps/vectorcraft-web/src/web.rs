@@ -66,8 +66,9 @@ pub fn start() {
     };
     detect_language();
     wasm_bindgen_futures::spawn_local(async move {
-        // Before the first frame, which looks for copies a crash left behind.
-        let locks = WebLocks::start(RECOVERY_PREFIX).await;
+        // Before the first frame, which looks for copies a crash left behind. Hosted by Clawku
+        // there is no Data Recovery (Clawku keeps versions): no locks for it either.
+        let locks = if crate::clawku_pick::hosted() { None } else { WebLocks::start(RECOVERY_PREFIX).await };
         // Fallback fonts the first frame needs (Noto Sans Arabic), fetched while the loading text
         // shows; the rest load in the background once the app runs.
         crate::fonts::load_startup_fonts().await;
@@ -430,6 +431,7 @@ fn services(inbox: Inbox, place_inbox: PlaceInbox, ctx: egui::Context, locks: Op
     let picked = place_inbox.clone();
     let place_ctx = ctx.clone();
     let screen_color = eye_dropper(ctx.clone());
+    let hosted = crate::clawku_pick::hosted();
     Services {
         // File → Place…: the picked files go to the Place dialog.
         place_async: Some(Box::new(move || {
@@ -453,6 +455,9 @@ fn services(inbox: Inbox, place_inbox: PlaceInbox, ctx: egui::Context, locks: Op
         })),
         place_inbox: Some(place_inbox),
         host_open: Some(Box::new(|| crate::clawku_pick::host_pick("vectorcraft", "document"))),
+        // Framed by Clawku: one document, Share and help are Clawku's (`vectorcraft_ui_egui::hosted`).
+        hosted,
+        host_share: hosted.then(|| Box::new(|| crate::clawku_pick::host_share("vectorcraft")) as Box<dyn FnMut() -> bool>),
         open_async: Some(Box::new(move || {
             let inbox = open_inbox.clone();
             let ctx = ctx.clone();
@@ -473,7 +478,9 @@ fn services(inbox: Inbox, place_inbox: PlaceInbox, ctx: egui::Context, locks: Op
         // A download that couldn't be started fails the save or export it is for (#1693).
         download: Some(Box::new(|name: &str, bytes: &[u8]| download(name, bytes).inspect_err(|e| log::error!("download of {name} failed: {e}")))),
         inbox: Some(inbox),
-        recovery_store: Some(Arc::new(BrowserStore { locks })),
+        // Data Recovery in the browser's storage, but not while Clawku hosts the app: Clawku keeps
+        // the versions, and copies left in this browser would come back on another file.
+        recovery_store: (!hosted).then(|| Arc::new(BrowserStore { locks }) as Arc<dyn RecoveryStore>),
         // File → Print: the browser's print dialog.
         print: Some(Box::new(BrowserPrint)),
         // The pen's end, from the page's Pointer Events (`crate::pencil`).

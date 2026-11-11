@@ -33,6 +33,10 @@ pub fn entry<'a>(app: &VectorcraftApp, it: &'a Item) -> Option<Entry<'a>> {
     Some(match it {
         Item::Sep => Entry::Sep,
         Item::Header(h) => Entry::Header(t(h)),
+        // Left out while Clawku hosts the app (Open Recent Files, Arrange, Help…).
+        Item::Sub(label, _) | Item::Todo(label, _) if crate::hosted::hides_submenu(app, label) || crate::hosted::hides_todo(app, label) => {
+            return None;
+        }
         Item::Sub(label, children) => Entry::Sub(t(label), children),
         Item::Todo(label, sc) => Entry::Item(Row {
             command: None,
@@ -123,6 +127,7 @@ pub fn context_entries(app: &VectorcraftApp) -> Vec<MenuEntry> {
 fn flatten(app: &VectorcraftApp, path: Vec<String>, items: &[Item], out: &mut Vec<MenuEntry>) {
     for it in items {
         match it {
+            Item::Sub(l, _) | Item::Todo(l, _) if crate::hosted::hides_submenu(app, l) || crate::hosted::hides_todo(app, l) => {}
             Item::Cmd(l, id, p) => {
                 let Some((enabled, _)) = shown_state(app, id, p) else { continue };
                 out.push(MenuEntry {

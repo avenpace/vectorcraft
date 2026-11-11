@@ -177,13 +177,23 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     let fill_active = app.session.fill_active;
     let has_doc = app.session.active().is_some();
     let libs = &app.session.libraries;
+    let kept_on_machine = libs.dir().is_some();
     let Some((lib_id, lib)) = libs.current().and_then(|id| Some((id.to_string(), libs.get(id)?))) else {
         ui.add_space(16.0);
         ui.vertical_centered(|ui| {
             icons::icon(ui, "library", 40.0, t.text_dim);
             ui.add_space(8.0);
             ui.label(egui::RichText::new(tl!("Local Libraries")).size(14.0).color(t.text));
-            widgets::dim_label(ui, tl!("Keep graphics, colors and text styles here to use them in any document. Libraries are stored on this machine — no account required."));
+            // Without a library folder (the web) nothing is kept on the machine: they last for the
+            // session.
+            widgets::dim_label(
+                ui,
+                if kept_on_machine {
+                    tl!("Keep graphics, colors and text styles here to use them in any document. Libraries are stored on this machine — no account required.")
+                } else {
+                    tl!("Keep graphics, colors and text styles here to use them in any document open in this session. Libraries last until the app is closed.")
+                },
+            );
             ui.add_space(8.0);
             if ui.button(tl!("Create New Library")).clicked() {
                 ask_name(app, None);

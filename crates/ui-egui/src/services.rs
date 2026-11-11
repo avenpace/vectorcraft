@@ -97,6 +97,14 @@ pub struct Services {
     pub open_async: Option<Box<dyn FnMut()>>,
     /// Clawku: hand File › Open to the host page (its storage browser); true when it took it.
     pub host_open: Option<Box<dyn FnMut() -> bool>>,
+    /// Clawku: hand Share to the host page (it runs sharing and live sessions); true when it took
+    /// it. Only set while [`Self::hosted`].
+    pub host_share: Option<Box<dyn FnMut() -> bool>>,
+    /// The web app runs framed by Clawku (`?host=parent&open=host`), which owns the file list, New,
+    /// Open, Close, sharing, versions and help: the app shows the one document Clawku sent and
+    /// leaves out its own ways to make, list or close documents and its standalone extras
+    /// ([`crate::hosted`]). `false` everywhere else (desktop, the plain web build).
+    pub hosted: bool,
     /// Read the system clipboard's text (desktop). Without it, pasted text only arrives with
     /// egui's Paste event (web, and keyboard paste everywhere).
     pub clipboard_read: Option<Box<dyn FnMut() -> Option<String>>>,

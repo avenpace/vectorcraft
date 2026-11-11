@@ -132,11 +132,11 @@ fn swapped_out(app: &VectorcraftApp, id: &str) -> bool {
 }
 
 /// How the menus show item `id` (params `p`) now: (enabled, checked: `Some` for an item that is on
-/// or off), or `None` while they leave it out: an empty slot ([`hidden_when_disabled`]) or an item
-/// another stands in for ([`swapped_out`]).
+/// or off), or `None` while they leave it out: an empty slot ([`hidden_when_disabled`]), an item
+/// another stands in for ([`swapped_out`]) or one Clawku hosting leaves out ([`crate::hosted`]).
 pub fn shown_state(app: &VectorcraftApp, id: &str, p: &Value) -> Option<(bool, Option<bool>)> {
     let en = enabled(app, id) && (id != crate::addons::select::link_status::COMMAND || crate::addons::select::link_status::enabled(app, p));
-    if (!en && hidden_when_disabled(id)) || swapped_out(app, id) {
+    if (!en && hidden_when_disabled(id)) || swapped_out(app, id) || crate::hosted::hides(app, id) {
         return None;
     }
     Some((en, checked(app, id, p)))
@@ -181,7 +181,8 @@ pub(super) fn has_subject(app: &VectorcraftApp) -> bool {
 /// Can command `id` run now? An engine command asks the engine, a UI command the app's state;
 /// none that would act on text an input method is still composing.
 pub fn enabled(app: &VectorcraftApp, id: &str) -> bool {
-    if waits_for_ime(app, id) {
+    // Left out while hosted by Clawku (or shown only then): off on keys and in the palette too.
+    if waits_for_ime(app, id) || crate::hosted::hides(app, id) {
         return false;
     }
     if SUBJECT_COMMANDS.contains(&id) {
@@ -304,6 +305,7 @@ pub fn enabled(app: &VectorcraftApp, id: &str) -> bool {
             n > 0 && (app.ui.tiled || crate::doc_windows::docked_windows(app).len() < n)
         }
         "window.nextDocument" | "window.previousDocument" => !app.session.documents().is_empty(),
+        crate::hosted::SHARE => app.services.host_share.is_some(),
         _ => true,
     }
 }

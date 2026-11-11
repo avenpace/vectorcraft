@@ -45,6 +45,8 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 c("Save as PDF…", "file.export.pdf"),
                 c("Save for Office Documents…", "document.exportForOffice"),
                 c("Revert", "file.revert"),
+                // Clawku only (hidden elsewhere): its own sharing.
+                c("Share…", "file.share"),
                 Sep,
                 c("Place…", "file.place"),
                 Sep,

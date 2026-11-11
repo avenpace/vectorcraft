@@ -114,7 +114,11 @@ pub(super) fn menu_body(app: &VectorcraftApp, ui: &mut egui::Ui, items: &[Item],
 /// room for one).
 pub(super) fn render_items(app: &VectorcraftApp, ui: &mut egui::Ui, items: &[Item], checks: bool, clicked: &mut Option<(String, Value)>) {
     let t = Tokens::get(ui.ctx());
-    for e in items.iter().filter_map(|it| entry(app, it)) {
+    let mut entries: Vec<Entry> = items.iter().filter_map(|it| entry(app, it)).collect();
+    if crate::hosted::hosted(app) {
+        tidy_separators(&mut entries);
+    }
+    for e in entries {
         match e {
             Entry::Sep => {
                 ui.separator();
@@ -132,6 +136,20 @@ pub(super) fn render_items(app: &VectorcraftApp, ui: &mut egui::Ui, items: &[Ite
             }
             Entry::Item(row) => render_row(app, ui, &row, checks, clicked),
         }
+    }
+}
+
+/// Drop the separators the items Clawku hosting leaves out would leave doubled, first or last.
+pub(super) fn tidy_separators(entries: &mut Vec<Entry>) {
+    let mut after_item = false;
+    entries.retain(|e| {
+        let sep = matches!(e, Entry::Sep);
+        let keep = !sep || after_item;
+        after_item = !sep;
+        keep
+    });
+    if matches!(entries.last(), Some(Entry::Sep)) {
+        entries.pop();
     }
 }
 
@@ -193,6 +211,8 @@ pub(crate) fn home_key(app: &VectorcraftApp) -> (Option<u64>, usize) {
 /// Whether the Home screen is up: chosen with the Home button (`app.home`), or no document is open
 /// and Preferences › General › Show The Home Screen When No Documents Are Open is on (#394). Off,
 /// an app with no document shows an empty window, and the Home button still opens the screen.
+/// Never while Clawku hosts the app: it starts on the document Clawku sends, without a Home
+/// screen flashing up before it arrives.
 pub(crate) fn home_showing(app: &VectorcraftApp) -> bool {
-    app.ui.home.is_some() || (app.session.active().is_none() && app.session.prefs.show_home_screen)
+    !crate::hosted::hosted(app) && (app.ui.home.is_some() || (app.session.active().is_none() && app.session.prefs.show_home_screen))
 }

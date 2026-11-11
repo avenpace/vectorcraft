@@ -519,6 +519,10 @@ fn single_key_shortcuts(app: &mut VectorcraftApp, ctx: &egui::Context) {
         // Single-key command shortcuts (X, Shift+X, D, /, Shift+D, F, Shift+F by default) before
         // tools.
         let Some(hit) = hits.iter().find(|c| !c.id.starts_with("tool:")).or(hits.first()) else { continue };
+        // Clawku hosting leaves the command out (Cmd+N, Cmd+W…): its keys do nothing.
+        if crate::hosted::hides(app, &hit.id) {
+            continue;
+        }
         match hit.id.strip_prefix("tool:") {
             Some(tool) => app.select_tool(tool),
             None if let Some((id, p)) = menu_target(hit) => crate::menus::invoke(app, &id, p),

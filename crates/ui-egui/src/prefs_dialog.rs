@@ -182,8 +182,9 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     let Some(mut d) = app.ui.dialog.clone() else { return };
     let t = Tokens::get(ctx);
     let (mut ok, mut cancel, mut reset) = (false, false, false);
+    let cats = shown_categories(app);
     let cat = d.str("__category");
-    let cat = PREF_CATEGORIES.iter().find(|c| **c == cat).copied().unwrap_or(PREF_CATEGORIES[0]);
+    let cat = cats.iter().find(|c| **c == cat).copied().unwrap_or(PREF_CATEGORIES[0]);
     crate::dialogs::modal::show(ctx, tl!("Preferences"), egui::Id::unique("dialog-preferences"), -20.0, 20, |ui| {
         ui.set_width(760.0);
         crate::dialogs::modal::heading(ui, tl!("Preferences"));
@@ -195,7 +196,7 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                 ui.set_min_height(430.0);
                 ui.vertical(|ui| {
                     ui.spacing_mut().item_spacing.y = 1.0;
-                    for c in PREF_CATEGORIES {
+                    for c in &cats {
                         let sel = *c == cat;
                         let text = egui::RichText::new(tl!(*c)).size(12.5).color(if sel { t.text_strong } else { t.text });
                         let b = egui::Button::selectable(sel, text).min_size(egui::vec2(184.0, 24.0));
@@ -233,12 +234,16 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                     cancel = true;
                 }
                 ui.add_space(16.0);
-                let i = PREF_CATEGORIES.iter().position(|c| *c == cat).unwrap_or(0);
-                if ui.add_enabled(i + 1 < PREF_CATEGORIES.len(), egui::Button::new(tl!("Next"))).clicked() {
-                    d.fields.insert("__category".into(), json!(PREF_CATEGORIES[i + 1]));
+                let i = cats.iter().position(|c| *c == cat).unwrap_or(0);
+                if ui.add_enabled(i + 1 < cats.len(), egui::Button::new(tl!("Next"))).clicked()
+                    && let Some(next) = cats.get(i + 1)
+                {
+                    d.fields.insert("__category".into(), json!(next));
                 }
-                if ui.add_enabled(i > 0, egui::Button::new(tl!("Previous"))).clicked() {
-                    d.fields.insert("__category".into(), json!(PREF_CATEGORIES[i - 1]));
+                if ui.add_enabled(i > 0, egui::Button::new(tl!("Previous"))).clicked()
+                    && let Some(prev) = i.checked_sub(1).and_then(|k| cats.get(k))
+                {
+                    d.fields.insert("__category".into(), json!(prev));
                 }
             });
         });
@@ -256,11 +261,21 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     }
 }
 
+/// The categories the dialog lists: those with something to show here (on the web, Plug-ins &
+/// Scratch Disks has only folders, which the browser has none of, [`crate::hosted::hides_pref`]).
+pub(crate) fn shown_categories(app: &VectorcraftApp) -> Vec<&'static str> {
+    PREF_CATEGORIES
+        .iter()
+        .copied()
+        .filter(|c| UI_FIELDS.iter().any(|f| f.1 == *c) || PREF_SPECS.iter().any(|s| s.category == *c && !crate::hosted::hides_pref(app, s.key)))
+        .collect()
+}
+
 fn category_fields(ui: &mut egui::Ui, app: &mut VectorcraftApp, d: &mut Dialog, cat: &str) {
     let t = Tokens::get(ui.ctx());
     let mut section = "";
     let mut first = true;
-    let specs: Vec<_> = PREF_SPECS.iter().filter(|s| s.category == cat).collect();
+    let specs: Vec<_> = PREF_SPECS.iter().filter(|s| s.category == cat && !crate::hosted::hides_pref(app, s.key)).collect();
     for (key, c, label) in UI_FIELDS {
         if *c == cat && cat != "Smart Guides" {
             bool_row(ui, d, key, label);

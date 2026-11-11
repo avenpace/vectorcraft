@@ -620,7 +620,7 @@ pub fn menu(app: &mut VectorcraftApp, ui: &mut Ui) {
         app.run("ui.graphicStyleOptions", json!({ "name": n })).ok();
     }
     ui.menu_button(tl!("Open Graphic Style Library"), |ui| library_panel::library_menu::<GraphicStyleLibraries>(app, ui));
-    if menu_item(ui, tl!("Save Graphic Style Library…"), has_doc, false) {
+    if !crate::hosted::hides(app, "ui.saveGraphicStyleLibrary") && menu_item(ui, tl!("Save Graphic Style Library…"), has_doc, false) {
         run(app, "ui.saveGraphicStyleLibrary", json!({ "names": sel }));
     }
 }
@@ -748,7 +748,7 @@ impl LibraryKind for GraphicStyleLibraries {
             app.status(e);
         }
         let doc = app.session.active().map(|st| st.doc.clone());
-        if menu_item(ui, tl!("Save Graphic Style Library…"), doc.is_some(), false) {
+        if !crate::hosted::hides(app, "ui.saveGraphicStyleLibrary") && menu_item(ui, tl!("Save Graphic Style Library…"), doc.is_some(), false) {
             let names = doc.map(|d| selected(ui.ctx(), &d)).unwrap_or_default();
             run(app, "ui.saveGraphicStyleLibrary", json!({ "names": names }));
         }

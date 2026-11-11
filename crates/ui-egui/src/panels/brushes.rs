@@ -518,7 +518,7 @@ pub fn menu(app: &mut VectorcraftApp, ui: &mut Ui) {
     }
     ui.separator();
     ui.menu_button(tl!("Open Brush Library"), |ui| library_panel::library_menu::<BrushLibraries>(app, ui));
-    if menu_item(ui, tl!("Save Brush Library…"), has_brushes, false) {
+    if !crate::hosted::hides(app, "ui.saveBrushLibrary") && menu_item(ui, tl!("Save Brush Library…"), has_brushes, false) {
         save_library(app, targets);
     }
 }
@@ -648,7 +648,7 @@ impl LibraryKind for BrushLibraries {
             app.status(e);
         }
         let has_brushes = has_brushes(app);
-        if menu_item(ui, tl!("Save Brushes…"), has_brushes, false) {
+        if !crate::hosted::hides(app, "ui.saveBrushLibrary") && menu_item(ui, tl!("Save Brushes…"), has_brushes, false) {
             let (list, current) = brushes(app);
             let names = targets(app, ui.ctx(), &list, current.as_deref());
             save_library(app, names);

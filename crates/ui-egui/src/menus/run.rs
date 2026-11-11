@@ -106,6 +106,7 @@ fn run_ui_part1(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<Result<
             app.ui.home = Some(home_key(app));
             Ok(Value::Null)
         }
+        crate::hosted::SHARE => crate::hosted::share(app),
         "file.open" => match s("path") {
             Some(path) => io::open_path(app, &path),
             None => io::open_dialog(app).map(|_| Value::Null),

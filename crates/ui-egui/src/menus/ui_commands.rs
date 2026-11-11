@@ -153,6 +153,7 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
         "Cmd+Alt+N",
         "{} makes a document with the settings the New Document dialog opens on (the first Recent entry, else the Print category's Letter), named after the next untitled document, without opening the dialog → {index, previewMode}",
     ),
+    ("file.share", "Share…", "", "{} Clawku only: asks the host page to share the document (vectorcraft:share) → {shared: true}"),
     ("app.home", "Home", "", "{} shows the Home screen (new file presets, Open) over the open documents; choosing a document tab returns to it"),
     ("edit.preferences", "Preferences…", "Cmd+K", "{category?} open Preferences (engine: prefs.get / prefs.set / prefs.list)"),
     ("edit.keyboardShortcuts", "Keyboard Shortcuts…", "Cmd+Alt+Shift+K", "{}"),
